@@ -33,11 +33,33 @@ const SECTIONS: { key: SectionKey; title: string; icon: string }[] = [
 export function PlanView({ plan }: Props) {
   const [activeSection, setActiveSection] = useState<SectionKey>('executiveSummary');
   const confidence = (plan.confidence as Record<string, number>) || {};
+  
+  // Debug: log plan data
+  console.log('PlanView received plan:', plan);
+  console.log('Plan sections:', {
+    executiveSummary: plan.executiveSummary,
+    marketAnalysis: plan.marketAnalysis,
+    status: plan.status
+  });
+
+  // Check if plan is still generating
+  if (plan.status === 'generating') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="spinner mx-auto mb-4" style={{width: 40, height: 40}} />
+          <h2 className="text-xl">Plan is still generating...</h2>
+          <p className="text-gray-400 mt-2">Refresh in a few seconds</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderSection = () => {
+    // Try both camelCase and snake_case versions for backward compatibility
     const section = plan[activeSection] as Record<string, unknown> | null;
     if (!section) {
-      return <p className="text-gray-400">This section is not available.</p>;
+      return <p className="text-gray-400">This section is not available. Plan status: {plan.status}</p>;
     }
 
     if (activeSection === 'executiveSummary') {

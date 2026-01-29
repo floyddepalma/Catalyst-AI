@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { db, businessPlans, agentRuns } from '@/lib/db';
+import { eq } from 'drizzle-orm';
 import { runAgents, generateExecutiveSummary } from '@/agents/orchestrator';
 import { QuestionnaireData } from '@/components/Questionnaire';
 import { v4 as uuidv4 } from 'uuid';
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
             completedAt: new Date(),
             updatedAt: new Date(),
           })
-          .where({ id: planId } as any);
+          .where(eq(businessPlans.id, planId));
 
         // Log agent runs
         for (const [key, result] of results) {
