@@ -1,9 +1,9 @@
-import { db, businessPlans } from '@/lib/db';
+import { db, businessPlans, BusinessPlan } from '@/lib/db';
 import { desc } from 'drizzle-orm';
 
 export default async function DebugPage() {
-  let plans;
-  let error = null;
+  let plans: BusinessPlan[] = [];
+  let error: string | null = null;
   
   try {
     plans = await db.query.businessPlans.findMany({

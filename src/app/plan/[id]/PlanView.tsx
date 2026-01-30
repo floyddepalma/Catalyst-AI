@@ -131,7 +131,7 @@ export function PlanView({ plan }: Props) {
                   >
                     <span>{icon}</span>
                     <span className="flex-1">{title}</span>
-                    {plan[key] && (
+                    {!!plan[key as keyof typeof plan] && (
                       <span className="w-2 h-2 rounded-full bg-green-500" />
                     )}
                   </button>
