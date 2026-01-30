@@ -32,15 +32,17 @@ const SECTIONS: { key: SectionKey; title: string; icon: string }[] = [
 
 export function PlanView({ plan }: Props) {
   const [activeSection, setActiveSection] = useState<SectionKey>('executiveSummary');
+  const [isPrintMode, setIsPrintMode] = useState(false);
   const confidence = (plan.confidence as Record<string, number>) || {};
   
-  // Debug: log plan data
-  console.log('PlanView received plan:', plan);
-  console.log('Plan sections:', {
-    executiveSummary: plan.executiveSummary,
-    marketAnalysis: plan.marketAnalysis,
-    status: plan.status
-  });
+  // Handle PDF export - show all sections then print
+  const handleExportPDF = () => {
+    setIsPrintMode(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrintMode(false);
+    }, 100);
+  };
 
   // Check if plan is still generating
   if (plan.status === 'generating') {
@@ -102,8 +104,8 @@ export function PlanView({ plan }: Props) {
                 {plan.businessDescription.slice(0, 100)}...
               </p>
             </div>
-            <div className="flex gap-2">
-              <button className="btn" onClick={() => window.print()}>
+            <div className="flex gap-2 no-print">
+              <button className="btn" onClick={handleExportPDF}>
                 📄 Export PDF
               </button>
             </div>
@@ -141,17 +143,46 @@ export function PlanView({ plan }: Props) {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0">
-          <div className="card">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">
-                {SECTIONS.find(s => s.key === activeSection)?.icon}{' '}
-                {SECTIONS.find(s => s.key === activeSection)?.title}
-              </h2>
-              {getConfidenceBadge(activeSection)}
+          {isPrintMode ? (
+            /* Print Mode: Show ALL sections */
+            <div className="print-content">
+              <h1 className="text-3xl font-bold mb-2 print-title">Business Plan</h1>
+              <p className="text-gray-400 mb-8 print-subtitle">{plan.businessDescription}</p>
+              
+              {SECTIONS.map(({ key, title, icon }) => {
+                const section = plan[key] as Record<string, unknown> | null;
+                if (!section) return null;
+                
+                return (
+                  <div key={key} className="mb-8 print-section">
+                    <h2 className="text-2xl font-bold mb-4 print-section-title">
+                      {icon} {title}
+                    </h2>
+                    {key === 'executiveSummary' ? (
+                      <p className="text-lg leading-relaxed whitespace-pre-wrap">
+                        {(section as any).content || JSON.stringify(section)}
+                      </p>
+                    ) : (
+                      <SectionRenderer data={section} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            
-            {renderSection()}
-          </div>
+          ) : (
+            /* Normal Mode: Show active section only */
+            <div className="card">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">
+                  {SECTIONS.find(s => s.key === activeSection)?.icon}{' '}
+                  {SECTIONS.find(s => s.key === activeSection)?.title}
+                </h2>
+                {getConfidenceBadge(activeSection)}
+              </div>
+              
+              {renderSection()}
+            </div>
+          )}
         </main>
       </div>
     </div>
